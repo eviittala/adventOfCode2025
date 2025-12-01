@@ -18,22 +18,7 @@ std::string getInput() {
 }
 
 uint64_t solution(const std::string& input) {
-    int64_t val{50};
     uint64_t ret{};
-    std::istringstream is{input};
-    for (std::string line; std::getline(is, line);) {
-        const int64_t move = std::atoi(line.substr(1).c_str());
-        if (line.at(0) == 'L') {
-            val -= (move % 100);
-            if (val < 0) {
-                val = 100 - std::abs(val);
-            }
-        } else {
-            val = (val + move) % 100;
-        }
-        if (val == 0) ++ret;
-    }
-
     return ret;
 }
 

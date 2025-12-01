@@ -17,21 +17,30 @@ std::string getInput() {
     return {};
 }
 
+uint64_t move(int64_t& val, const int64_t rot, const uint8_t dir) {
+    uint64_t ret{};
+    if (dir == 0)
+        for (int i{}; i < rot; ++i) {
+            val = (val + 1) % 100;
+            if (val == 0) ++ret;
+        }
+    else {
+        for (int i{}; i < rot; ++i) {
+            val = (val - 1);
+            if (val == 0) ++ret;
+            if (val < 0) val = 100 - std::abs(val);
+        }
+    }
+    return ret;
+}
+
 uint64_t solution(const std::string& input) {
     int64_t val{50};
     uint64_t ret{};
     std::istringstream is{input};
     for (std::string line; std::getline(is, line);) {
-        const int64_t move = std::atoi(line.substr(1).c_str());
-        if (line.at(0) == 'L') {
-            val -= (move % 100);
-            if (val < 0) {
-                val = 100 - std::abs(val);
-            }
-        } else {
-            val = (val + move) % 100;
-        }
-        if (val == 0) ++ret;
+        const int64_t rot = std::atoi(line.substr(1).c_str());
+        ret += move(val, rot, line.at(0) == 'L' ? 1 : 0);
     }
 
     return ret;
