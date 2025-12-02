@@ -28,6 +28,7 @@ uint64_t checkRange(const uint64_t min, const uint64_t max) {
     uint64_t ret{};
     for (uint64_t i{min}; i <= max; ++i) {
         if (isInvalid(std::to_string(i))) {
+            // printf("Invalid id: %lu\n", i);
             ret += i;
         }
     }
@@ -42,6 +43,7 @@ uint64_t solution(const std::string& input) {
         const uint64_t val1 = std::stoull(sm[1].str());
         const uint64_t val2 = std::stoull(sm[2].str());
         ret += checkRange(val1, val2);
+        // printf("%s - %s\n", sm[1].str().c_str(), sm[2].str().c_str());
         temp = sm.suffix();
     }
     return ret;
@@ -51,3 +53,5 @@ int main(int argc, char* argv[]) {
     printf("Answer: %lu\n", solution(getInput()));
     return 0;
 }
+// 18699979785
+
