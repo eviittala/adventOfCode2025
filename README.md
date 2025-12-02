@@ -1,4 +1,4 @@
-# adventOfCode2025 - Eero Viittala
+# adventOfCode2025
 eero.viittala@outlook.com
 
 Compilation command:
