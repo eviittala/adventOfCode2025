@@ -24,7 +24,7 @@ uint64_t getJoltage(const std::string& str) {
 
     for (size_t i{}; i < size; ++i) {
         for (size_t j{i + 1}; j < size; ++j) {
-            char valStr[2]{};
+            char valStr[3]{};
             valStr[0] = str[i];
             valStr[1] = str[j];
             const uint64_t val = std::stoull(valStr);
