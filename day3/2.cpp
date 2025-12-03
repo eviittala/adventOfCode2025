@@ -40,6 +40,7 @@ uint64_t solution(const std::string& input) {
     uint64_t ret{};
     std::istringstream is{input};
     for (std::string line; std::getline(is, line);) {
+        // printf("%s\n", line.c_str());
         ret += getJoltage(line);
     }
     return ret;
@@ -49,3 +50,4 @@ int main(int argc, char* argv[]) {
     printf("Answer: %lu\n", solution(getInput()));
     return 0;
 }
+
