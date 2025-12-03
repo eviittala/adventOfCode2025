@@ -72,7 +72,6 @@ uint64_t solution(const std::string& input) {
 }
 
 int main(int argc, char* argv[]) {
-    // 171435596092638
     const auto start = std::chrono::system_clock::now();
     printf("Answer: %lu\n", solution(getInput()));
     const auto end = std::chrono::system_clock::now();

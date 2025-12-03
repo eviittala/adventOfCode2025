@@ -1,8 +1,12 @@
+#include <cassert>
+#include <chrono>
 #include <cstdint>
+#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <regex>
 #include <sstream>
+#include <unordered_map>
 #include <vector>
 
 std::string getInput() {
@@ -18,34 +22,17 @@ std::string getInput() {
     return {};
 }
 
-uint64_t getJoltage(const std::string& str) {
-    uint64_t ret{};
-    const size_t size = str.size();
-
-    for (size_t i{}; i < size; ++i) {
-        for (size_t j{i + 1}; j < size; ++j) {
-            char valStr[3]{};
-            valStr[0] = str[i];
-            valStr[1] = str[j];
-            const uint64_t val = std::stoull(valStr);
-            if (ret < val) {
-                ret = val;
-            }
-        }
-    }
-    return ret;
-}
-
 uint64_t solution(const std::string& input) {
     uint64_t ret{};
-    std::istringstream is{input};
-    for (std::string line; std::getline(is, line);) {
-        ret += getJoltage(line);
-    }
     return ret;
 }
 
 int main(int argc, char* argv[]) {
+    const auto start = std::chrono::system_clock::now();
     printf("Answer: %lu\n", solution(getInput()));
+    const auto end = std::chrono::system_clock::now();
+    const std::chrono::duration<double> diff = end - start;
+    std::cout << "Test elapsed: " << diff << std::endl;
     return 0;
 }
+
