@@ -22,8 +22,51 @@ std::string getInput() {
     return {};
 }
 
+std::vector<std::string> makeVec(const std::string& input) {
+    std::vector<std::string> ret;
+    std::istringstream is{input};
+    for (std::string line; std::getline(is, line);) {
+        ret.push_back(line);
+    }
+    return ret;
+}
+
+bool isRollAccessable(const std::vector<std::string>& lines, const int64_t x,
+                      const int64_t y) {
+    uint64_t hits{};
+    for (auto XY : std::vector<std::pair<uint64_t, uint64_t>>{{-1, 1},
+                                                              {0, 1},
+                                                              {1, 1},
+                                                              {-1, 0},
+                                                              {1, 0},
+                                                              {-1, -1},
+                                                              {0, -1},
+                                                              {1, -1}}) {
+        try {
+            if (lines.at(y + XY.second).at(x + XY.first) == '@') {
+                ++hits;
+            }
+        } catch (const std::out_of_range&) {
+        }
+    }
+
+    return hits < 4;
+}
+
 uint64_t solution(const std::string& input) {
     uint64_t ret{};
+    const auto lines = makeVec(input);
+    const int64_t lineSize = lines.at(0).size();
+    const int64_t size = lines.size();
+
+    for (int64_t y{}; y < size; ++y) {
+        for (int64_t x{}; x < lineSize; ++x) {
+            if (lines.at(y).at(x) == '@' && isRollAccessable(lines, x, y)) {
+                ++ret;
+            }
+        }
+    }
+
     return ret;
 }
 

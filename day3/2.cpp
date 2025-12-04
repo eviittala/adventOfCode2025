@@ -33,9 +33,9 @@ std::string getJoltage(const std::string& str, const uint64_t idx,
     if (num >= 11) {
         return str.substr(idx, 1);
     }
-    const auto hash = makeValue(idx, num);
-    if (mem.contains(hash)) {
-        return mem[hash];
+    const auto key = makeValue(idx, num);
+    if (mem.contains(key)) {
+        return mem[key];
     }
     std::string ret{};
     const size_t size = str.size();
@@ -53,8 +53,8 @@ std::string getJoltage(const std::string& str, const uint64_t idx,
         }
     }
 
-    if (!mem.contains(hash)) {
-        mem[hash] = ret;
+    if (!mem.contains(key)) {
+        mem[key] = ret;
     }
     return ret;
 }
