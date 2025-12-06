@@ -66,8 +66,6 @@ bool isEmpty(const std::string& str) {
 
 std::vector<std::vector<uint64_t>> getValues(
     const std::vector<std::string>& vec) {
-    const std::regex re(R"((\d+(\s+)?))");
-    std::vector<std::string> values;
     std::vector<std::vector<uint64_t>> ret;
     const auto nbrOfElems = getNbrOfElems(vec);
     ret.resize(nbrOfElems);
