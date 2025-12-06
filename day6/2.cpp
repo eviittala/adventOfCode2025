@@ -33,12 +33,10 @@ std::vector<std::string> makeVec(const std::string& input) {
 
 char getSign(const std::vector<std::string>& vec, const uint64_t idx) {
     std::string line = vec.back();
-    // std::cout << line << std::endl;
     const std::regex re(R"(([*-+]))");
     std::smatch match;
     uint64_t i{};
     while (std::regex_search(line, match, re)) {
-        // printf("%lu %lu %s\n", i, idx, match[1].str().c_str());
         if (i++ == idx) {
             return match[1].str()[0];
         }
@@ -47,28 +45,58 @@ char getSign(const std::vector<std::string>& vec, const uint64_t idx) {
     assert(false);
 }
 
-uint64_t getValue(const std::string& line, const uint64_t idx) {
-    std::string line_t = line;
-    const std::regex re(R"((\d+))");
+size_t getNbrOfElems(const std::vector<std::string>& vec) {
+    std::string line = vec.at(0);
+    const std::regex re(R"(\d+)");
     std::smatch match;
-    uint64_t i{};
-    while (std::regex_search(line_t, match, re)) {
-        if (i++ == idx) {
-            // std::cout << match[1].str() << std::endl;
-            return std::stoull(match[1].str());
-        }
-        line_t = match.suffix();
+    size_t ret{};
+    while (std::regex_search(line, match, re)) {
+        ++ret;
+        line = match.suffix();
     }
-    assert(false);
+    return ret;
 }
 
-uint64_t getCalculation(const std::vector<std::string> vec,
-                        const uint64_t idx) {
-    const char sign = getSign(vec, idx);
+bool isEmpty(const std::string& str) {
+    for (auto c : str) {
+        if (c != ' ') return false;
+    }
+    return true;
+}
+
+std::vector<std::vector<uint64_t>> getValues(
+    const std::vector<std::string>& vec) {
+    const std::regex re(R"((\d+(\s+)?))");
+    std::vector<std::string> values;
+    std::vector<std::vector<uint64_t>> ret;
+    const auto nbrOfElems = getNbrOfElems(vec);
+    ret.resize(nbrOfElems);
+    size_t idx{nbrOfElems - 1};
+    bool updateIdx = false;
+
+    for (int64_t i = vec.at(0).size() - 1; i >= 0; --i) {
+        std::string nbr;
+        for (size_t j{}; j < vec.size() - 1; ++j) {
+            nbr += vec.at(j).at(i);
+        }
+        if (!isEmpty(nbr)) {
+            if (updateIdx) {
+                --idx;
+                updateIdx = false;
+            }
+            ret[idx].push_back(std::stoull(nbr));
+        } else {
+            updateIdx = true;
+        }
+    }
+
+    return ret;
+}
+
+uint64_t getCalculation(const std::vector<uint64_t> vec, const uint64_t sign) {
     uint64_t ret{};
 
-    for (size_t i{}; i < vec.size() - 1; ++i) {
-        const auto val = getValue(vec.at(i), idx);
+    for (const auto val : vec) {
         // printf("VAL: %lu sign: %c\n", val, sign);
         switch (sign) {
             case '+':
@@ -92,25 +120,13 @@ uint64_t getCalculation(const std::vector<std::string> vec,
     return ret;
 }
 
-size_t getNbrOfElems(const std::vector<std::string>& vec) {
-    std::string line = vec.at(0);
-    const std::regex re(R"(\d+)");
-    std::smatch match;
-    size_t ret{};
-    while (std::regex_search(line, match, re)) {
-        ++ret;
-        line = match.suffix();
-    }
-    return ret;
-}
-
 uint64_t solution(const std::string& input) {
     uint64_t ret{};
     const auto vec = makeVec(input);
-    for (size_t i{}; i < getNbrOfElems(vec); ++i) {
-        const uint64_t res = getCalculation(vec, i);
-        // printf("%zu Res: %lu\n", i, res);
-        ret += res;
+    auto values = getValues(vec);
+
+    for (size_t i{}; i < values.size(); ++i) {
+        ret += getCalculation(values.at(i), getSign(vec, i));
     }
 
     return ret;
