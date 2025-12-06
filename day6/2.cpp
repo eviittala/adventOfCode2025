@@ -95,7 +95,6 @@ uint64_t getCalculation(const std::vector<uint64_t> vec, const uint64_t sign) {
     uint64_t ret{};
 
     for (const auto val : vec) {
-        // printf("VAL: %lu sign: %c\n", val, sign);
         switch (sign) {
             case '+':
                 ret += val;
