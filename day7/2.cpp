@@ -47,39 +47,76 @@ size_t getStartingPoint(const std::vector<std::string>& vec) {
     assert(false);
 }
 
+void fillBeams(std::string& str, const std::set<size_t>& beams) {
+    for (auto i : beams) {
+        str.at(i) = '|';
+    }
+}
+
+uint64_t makeKey(const size_t line, const size_t idx) {
+    return (line << 32) | idx;
+}
+
+std::unordered_map<uint64_t, uint64_t> mem;
+
+uint64_t getRoutes(const std::vector<std::string>& vec, const size_t line,
+                   const size_t idx) {
+    if (line == vec.size()) {
+        return 1;
+    }
+
+    const auto key = makeKey(line, idx);
+    if (mem.contains(key)) {
+        return mem.at(key);
+    }
+
+    uint64_t ret{};
+
+    if (vec.at(line).at(idx) == '|')
+        ret += getRoutes(vec, line + 1, idx);
+    else if (vec.at(line).at(idx) == '^') {
+        if (0 < idx) {
+            ret += getRoutes(vec, line + 1, idx - 1);
+        }
+        if (idx < vec.at(0).size()) {
+            ret += getRoutes(vec, line + 1, idx + 1);
+        }
+    }
+
+    if (!mem.contains(key)) {
+        mem[key] = ret;
+    }
+
+    return ret;
+}
+
 uint64_t solution(const std::string& input) {
     uint64_t ret{};
-    const auto vec = makeVec(input);
-    printVec(vec);
+    auto vec = makeVec(input);
 
     std::set<size_t> beams{getStartingPoint(vec)};
-    // ret += beams.size();
 
     for (size_t l{1}; l < vec.size(); ++l) {
-        bool beamsAdded = false;
         for (size_t i{}; i < vec.at(l).size(); ++i) {
             const char c = vec.at(l).at(i);
             if (c == '^') {
                 if (const auto beam = beams.find(i); beam != beams.end()) {
                     beams.erase(beam);
-                    ++ret;
                     if (0 < i) {
-                        if (beams.insert(i - 1).second) /* ++ret*/
-                            ;
+                        if (beams.insert(i - 1).second) {
+                        }
                     }
                     if (i < vec.at(l).size()) {
-                        if (beams.insert(i + 1).second) /*++ret*/
-                            ;
+                        if (beams.insert(i + 1).second) {
+                        }
                     }
-                    beamsAdded = true;
                 }
             }
         }
-        if (beamsAdded) {
-            printf("line: %zu size: %zu ret: %lu\n", l, beams.size(), ret);
-            // ret += beams.size();
-        }
+        fillBeams(vec.at(l), beams);
     }
+    // printVec(vec);
+    ret += getRoutes(vec, 1, getStartingPoint(vec));
 
     return ret;
 }
