@@ -124,12 +124,12 @@ uint64_t solution(const std::string& input) {
     auto vec = makeVec(input);
     // printVec(vec);
     std::vector<std::tuple<float, size_t, size_t>> junctions;
-    //    for (size_t i{1}; i < vec.size(); ++i) {
-    //        auto [x, y, z] = vec.at(i);
-    //        std::cout << x << ", " << y << ", " << z
-    //                  << " Dist: " << calcDistance(vec.at(0), vec.at(i))
-    //                  << std::endl;
-    //    }
+    for (size_t i{1}; i < vec.size(); ++i) {
+        auto [x, y, z] = vec.at(i);
+        std::cout << x << ", " << y << ", " << z
+                  << " Dist: " << calcDistance(vec.at(0), vec.at(i))
+                  << std::endl;
+    }
 
     for (size_t i{0}; i < vec.size(); ++i) {
         for (size_t j{i + 1}; j < vec.size(); ++j) {
@@ -141,30 +141,32 @@ uint64_t solution(const std::string& input) {
         return get<0>(first) < get<0>(second);
     });
 
-    // std::cout << "PRINT first 10" << std::endl;
+    std::cout << "PRINT first 10" << std::endl;
 
-    // for (size_t i{}; i < 10; ++i) {
-    //     auto [dist, p1, p2] = junctions.at(i);
-    //     auto [x1, y1, z1] = vec.at(p1);
-    //     auto [x2, y2, z2] = vec.at(p2);
-    //     std::cout << x1 << ", " << y1 << ", " << z1 << " -> " << x2 << ", "
-    //               << y2 << ", " << z2 << " Dist: " << dist << std::endl;
-    // }
+    // constexpr size_t index = 10;
 
-    auto circuits = makeCircuits(junctions, 1000);
+    for (size_t i{}; i < junctions.size(); ++i) {
+        auto [dist, p1, p2] = junctions.at(i);
+        auto [x1, y1, z1] = vec.at(p1);
+        auto [x2, y2, z2] = vec.at(p2);
+        std::cout << i << ". " << x1 << ", " << y1 << ", " << z1 << " -> " << x2
+                  << ", " << y2 << ", " << z2 << " Dist: " << dist << std::endl;
+    }
+
+    auto circuits = makeCircuits(junctions, junctions.size());
     std::ranges::sort(circuits, [](const auto& first, const auto& second) {
         return first.size() > second.size();
     });
 
-    // std::cout << "PRINT first 10" << std::endl;
+    std::cout << "PRINT circuits" << std::endl;
 
-    // for (auto circuit : circuits) {
-    //     std::cout << circuit.size() << ": ";
-    //     for (auto& vec : circuit) {
-    //         std::cout << vec << ", ";
-    //     }
-    //     std::cout << std::endl;
-    // }
+    for (auto circuit : circuits) {
+        std::cout << circuit.size() << ": ";
+        for (auto& vec : circuit) {
+            std::cout << vec << ", ";
+        }
+        std::cout << std::endl;
+    }
     uint64_t ret{1};
     for (size_t i{}; i < 3; ++i) {
         ret *= circuits.at(i).size();
