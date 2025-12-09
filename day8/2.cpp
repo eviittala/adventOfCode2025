@@ -25,9 +25,10 @@ std::string getInput() {
     return {};
 }
 
-std::vector<std::tuple<int64_t, int64_t, int64_t>> makeVec(
-    const std::string& input) {
-    std::vector<std::tuple<int64_t, int64_t, int64_t>> ret;
+using Point = std::tuple<int64_t, int64_t, int64_t>;
+
+std::vector<Point> makeVec(const std::string& input) {
+    std::vector<Point> ret;
     std::istringstream is{input};
     std::regex re(R"((\d+),(\d+),(\d+))");
     std::smatch sm;
@@ -40,100 +41,109 @@ std::vector<std::tuple<int64_t, int64_t, int64_t>> makeVec(
     return ret;
 }
 
-float calcDistance(const std::tuple<int64_t, int64_t, int64_t>& p1,
-                   const std::tuple<int64_t, int64_t, int64_t>& p2) {
+float calcDistance(const Point& p1, const Point& p2) {
     const auto [x1, y1, z1] = p1;
     const auto [x2, y2, z2] = p2;
 
-    auto ret = std::sqrt(std::pow(x2 - x1, 2) + std::pow(y2 - y1, 2) +
-                         std::pow(z2 - z1, 2));
+    auto ret = std::sqrt(std::pow((x2 - x1), 2) + std::pow((y2 - y1), 2) +
+                         std::pow((z2 - z1), 2));
     return ret;
 }
 
-void printVec(const std::vector<std::tuple<int64_t, int64_t, int64_t>>& vec) {
+void printVec(const std::vector<Point>& vec) {
     for (const auto& line : vec) {
         auto [x, y, z] = line;
         std::cout << x << ", " << y << ", " << z << std::endl;
     }
 }
 
-void addToCircuit(std::vector<std::vector<size_t>>& vecs, const size_t p1,
-                  const size_t p2) {
+size_t getIndex(const std::vector<std::vector<Point>>& vec, const Point val) {
+    for (size_t i{}; i < vec.size(); ++i) {
+        if (auto it = std::ranges::find(vec.at(i), val);
+            it != std::end(vec.at(i))) {
+            return i;
+        }
+    }
+    return vec.size();
+}
+
+std::vector<std::pair<Point, Point>> connections;
+
+void addToCircuit(std::vector<std::vector<Point>>& vecs, const Point p1,
+                  const Point p2) {
     if (vecs.empty()) {
-        std::vector<size_t> temp;
+        std::vector<Point> temp;
         temp.push_back(p1);
         temp.push_back(p2);
         vecs.push_back(std::move(temp));
         return;
     }
-    for (size_t i{}; i < vecs.size(); ++i) {
-        auto& vec = vecs.at(i);
-        const auto it1 = std::ranges::find(vec, p1);
-        const auto it2 = std::ranges::find(vec, p2);
-        if (it1 != std::end(vec) and it2 == std::end(vec)) {
-            vec.push_back(p2);
-            return;
-        } else if (it1 == std::end(vec) and it2 != std::end(vec)) {
-            vec.push_back(p1);
-            return;
-        } else if (it1 != std::end(vec) and it2 != std::end(vec)) {
-            return;
-        }
+    const auto idx1 = getIndex(vecs, p1);
+    const auto idx2 = getIndex(vecs, p2);
+    if (idx1 != vecs.size() and idx2 != vecs.size() and idx1 != idx2) {
+        auto& vecFrom = vecs.at(idx2);
+        auto& vecTo = vecs.at(idx1);
+        connections.emplace_back(p1, p2);
+        std::copy(std::begin(vecFrom), std::end(vecFrom),
+                  std::back_inserter(vecTo));
+        vecs.erase(vecs.begin() + idx2);
+
+        return;
+    } else if (idx1 != vecs.size() and idx2 == vecs.size()) {
+        connections.emplace_back(p1, p2);
+        vecs.at(idx1).push_back(p2);
+        return;
+    } else if (idx1 == vecs.size() and idx2 != vecs.size()) {
+        connections.emplace_back(p1, p2);
+        vecs.at(idx2).push_back(p1);
+        return;
+    } else if (idx1 != vecs.size() and idx2 != vecs.size() and idx1 == idx2) {
+        return;
     }
-    std::vector<size_t> temp;
+    connections.emplace_back(p1, p2);
+    std::vector<Point> temp;
     temp.push_back(p1);
     temp.push_back(p2);
     vecs.push_back(std::move(temp));
 }
 
-std::vector<std::vector<size_t>> makeCircuits(
-    const std::vector<std::tuple<float, size_t, size_t>> junctions,
+void printCircuits(const std::vector<std::vector<Point>>& vecs) {
+    for (const auto& vec : vecs) {
+        for (const auto& val : vec) {
+            std::cout << "{" << std::get<0>(val) << ", " << std::get<1>(val)
+                      << ", " << std::get<2>(val) << "}, ";
+        }
+        std::cout << std::endl;
+    }
+}
+
+std::vector<std::vector<Point>> makeCircuits(
+    const std::vector<std::tuple<float, Point, Point>> junctions,
     const size_t nbr) {
-    std::vector<std::vector<size_t>> ret;
+    std::vector<std::vector<Point>> ret;
     for (size_t i{}; i < nbr; ++i) {
         const auto [dist, p1, p2] = junctions.at(i);
-        // printf("makeCircuit dist: %f, %zu, %zu\n", dist, p1, p2);
         addToCircuit(ret, p1, p2);
-    }
-    bool combine{true};
-    while (combine) {
-        combine = false;
-        for (size_t i{}; i < ret.size(); ++i) {
-            for (size_t j{i + 1}; j < ret.size(); ++j) {
-                for (const auto val : ret.at(i)) {
-                    if (auto it = std::ranges::find(ret.at(j), val);
-                        it != std::end(ret.at(j))) {
-                        auto& vecFrom = ret.at(i);
-                        auto& vecTo = ret.at(j);
-                        std::copy(std::begin(vecFrom), std::end(vecFrom),
-                                  std::back_inserter(vecTo));
-                        vecFrom.clear();
-                        std::ranges::sort(vecTo);
-                        auto last = std::unique(vecTo.begin(), vecTo.end());
-                        vecTo.erase(last, vecTo.end());
-                        combine = true;
-                        break;
-                    }
-                }
-            }
-        }
     }
     return ret;
 }
+
+uint64_t getLastConnectionResult() {
+    const auto [p1, p2] = connections.back();
+    const auto [x1, y1, z1] = p1;
+    const auto [x2, y2, z2] = p2;
+    return x1 * x2;
+}
+
 uint64_t solution(const std::string& input) {
     auto vec = makeVec(input);
     // printVec(vec);
-    std::vector<std::tuple<float, size_t, size_t>> junctions;
-    for (size_t i{1}; i < vec.size(); ++i) {
-        auto [x, y, z] = vec.at(i);
-        std::cout << x << ", " << y << ", " << z
-                  << " Dist: " << calcDistance(vec.at(0), vec.at(i))
-                  << std::endl;
-    }
+    std::vector<std::tuple<float, Point, Point>> junctions;
 
     for (size_t i{0}; i < vec.size(); ++i) {
         for (size_t j{i + 1}; j < vec.size(); ++j) {
-            junctions.emplace_back(calcDistance(vec.at(i), vec.at(j)), i, j);
+            junctions.emplace_back(calcDistance(vec.at(i), vec.at(j)),
+                                   vec.at(i), vec.at(j));
         }
     }
 
@@ -141,38 +151,12 @@ uint64_t solution(const std::string& input) {
         return get<0>(first) < get<0>(second);
     });
 
-    std::cout << "PRINT first 10" << std::endl;
-
-    // constexpr size_t index = 10;
-
-    for (size_t i{}; i < junctions.size(); ++i) {
-        auto [dist, p1, p2] = junctions.at(i);
-        auto [x1, y1, z1] = vec.at(p1);
-        auto [x2, y2, z2] = vec.at(p2);
-        std::cout << i << ". " << x1 << ", " << y1 << ", " << z1 << " -> " << x2
-                  << ", " << y2 << ", " << z2 << " Dist: " << dist << std::endl;
-    }
-
     auto circuits = makeCircuits(junctions, junctions.size());
     std::ranges::sort(circuits, [](const auto& first, const auto& second) {
         return first.size() > second.size();
     });
 
-    std::cout << "PRINT circuits" << std::endl;
-
-    for (auto circuit : circuits) {
-        std::cout << circuit.size() << ": ";
-        for (auto& vec : circuit) {
-            std::cout << vec << ", ";
-        }
-        std::cout << std::endl;
-    }
-    uint64_t ret{1};
-    for (size_t i{}; i < 3; ++i) {
-        ret *= circuits.at(i).size();
-    }
-
-    return ret;
+    return getLastConnectionResult();
 }
 
 int main(int argc, char* argv[]) {
