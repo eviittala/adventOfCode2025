@@ -1,0 +1,36 @@
+Is point inside figure Square?
+  (  5,  5): true
+  (  5,  8): true
+  (-10,  5): false
+  (  0,  5): false
+  ( 10,  5): true
+  (  8,  5): true
+  ( 10, 10): true
+
+Is point inside figure Square hole?
+  (  5,  5): false
+  (  5,  8): true
+  (-10,  5): false
+  (  0,  5): false
+  ( 10,  5): true
+  (  8,  5): true
+  ( 10, 10): true
+
+Is point inside figure Strange?
+  (  5,  5): true
+  (  5,  8): false
+  (-10,  5): false
+  (  0,  5): false
+  ( 10,  5): true
+  (  8,  5): true
+  ( 10, 10): true
+
+Is point inside figure Exagon?
+  (  5,  5): true
+  (  5,  8): true
+  (-10,  5): false
+  (  0,  5): false
+  ( 10,  5): false
+  (  8,  5): true
+  ( 10, 10): true
+
