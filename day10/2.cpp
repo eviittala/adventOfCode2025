@@ -255,9 +255,9 @@ bool addNbrs(std::vector<uint64_t>& numbers, const std::vector<uint64_t>& max) {
             if (++numbers.at(i) > max.at(i)) {
                 numbers.at(i) = 0;
             } else {
-                if (i == numbers.size() - 3) {
-                    printNumbers(numbers);
-                }
+                // if (i == numbers.size() - 3) {
+                //     printNumbers(numbers);
+                // }
                 break;
             }
         }
@@ -336,6 +336,72 @@ uint64_t getFewestPresses(const std::map<uint64_t, std::vector<size_t>>& combina
     return ret;
 }
 
+bool hasCombReachedEnd(const std::vector<size_t>& combs, const std::vector<uint64_t>& numbers,
+                       const uint64_t max) {
+    for (auto idx : combs) {
+        if (numbers.at(idx) < max) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool isCombValid(const std::vector<size_t>& combs, const std::vector<uint64_t>& numbers,
+                 const uint64_t joltage) {
+    uint64_t val{};
+    for (auto idx : combs) {
+        val += numbers.at(idx);
+    }
+    return val == joltage;
+}
+
+uint64_t getFewestPressesFast(const std::map<uint64_t, std::vector<size_t>>& combinations,
+                              const std::vector<uint64_t>& joltages, std::vector<uint64_t> numbers,
+                              const uint64_t idx) {
+    // std::vector<uint64_t> numbers(getNbrOfIdx(combinations));
+    // const auto max = getMax(combinations, joltages);
+    // printMax(max);
+
+    if (idx == combinations.size()) {
+        const auto presses = getNumbers(numbers);
+        // printf("Found! idx: %lu presses: %lu\n", idx, presses);
+        return presses;
+    }
+
+    // printf("Scanning idx: %lu : ", idx);
+    // printNumbers(numbers);
+
+    const auto& combs = combinations.at(idx);
+    std::vector<uint64_t> nbrsIdxToUse;
+    for (const auto nbrIdx : combs) {
+        if (numbers.at(nbrIdx) == UINT64_MAX) {
+            nbrsIdxToUse.push_back(nbrIdx);
+            numbers.at(nbrIdx) = 0;
+        }
+    }
+    uint64_t ret{UINT64_MAX};
+    const auto joltage = joltages.at(idx);
+
+    do {
+        if (isCombValid(combs, numbers, joltage)) {
+            const auto presses = getFewestPressesFast(combinations, joltages, numbers, idx + 1);
+            if (presses < ret) {
+                ret = presses;
+            }
+        }
+
+        for (const auto idx : nbrsIdxToUse) {
+            if (joltage < numbers.at(idx)++) {
+                numbers.at(idx) = 0;
+            } else
+                break;
+        }
+    } while (!std::ranges::all_of(
+        nbrsIdxToUse, [&joltage, &numbers](const auto idx) { return numbers.at(idx) > joltage; }));
+
+    return ret;
+}
+
 uint64_t getNbrOfButtonPresses(const std::string& line) {
     const auto joltages = getJoltage(line);
     const auto buttons = getButtons(line);
@@ -369,10 +435,17 @@ uint64_t getNbrOfButtonPresses(const std::string& line) {
         printf(" = %lu\n", joltages.at(i));
         // std::cout << std::endl;
     }*/
+    // OLD
     // const auto nbrOfPresses = getFewestButtonsPressed(joltages, buttons, pressed, combinations);
-
     // return nbrOfPresses;
-    return getFewestPresses(combinations, joltages);
+
+    // OLD 2
+    // const auto nbrOfPresses = getFewestPresses(combinations, joltages);
+    // return nbrOfPresses;
+    // NEW
+    std::vector<uint64_t> numbers(getNbrOfIdx(combinations));
+    std::ranges::fill(numbers, UINT64_MAX);
+    return getFewestPressesFast(combinations, joltages, numbers, 0);
 }
 
 uint64_t solution(const std::string& input) {
