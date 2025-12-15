@@ -355,6 +355,16 @@ bool isCombValid(const std::vector<size_t>& combs, const std::vector<uint64_t>& 
     return val == joltage;
 }
 
+uint64_t getValForFirstIdx(const std::vector<size_t>& combs, const std::vector<uint64_t>& numbers,
+                           const uint64_t joltage) {
+    uint64_t val{};
+    for (auto idx : combs) {
+        val += numbers.at(idx);
+    }
+    const uint64_t ret = val < joltage ? joltage - val : 1;
+    return ret;
+}
+
 uint64_t getFewestPressesFast(const std::map<uint64_t, std::vector<size_t>>& combinations,
                               const std::vector<uint64_t>& joltages, std::vector<uint64_t> numbers,
                               const uint64_t idx) {
@@ -390,11 +400,16 @@ uint64_t getFewestPressesFast(const std::map<uint64_t, std::vector<size_t>>& com
             }
         }
 
-        for (const auto idx : nbrsIdxToUse) {
-            if (joltage < numbers.at(idx)++) {
-                numbers.at(idx) = 0;
-            } else
+        for (size_t i{}; i < nbrsIdxToUse.size(); ++i) {
+            if (joltage < numbers.at(nbrsIdxToUse.at(i))) {
+                numbers.at(nbrsIdxToUse.at(i)) = 0;
+            } else if (i == 0) {
+                numbers.at(nbrsIdxToUse.at(i)) += getValForFirstIdx(combs, numbers, joltage);
                 break;
+            } else {
+                ++numbers.at(nbrsIdxToUse.at(i));
+                break;
+            }
         }
     } while (!std::ranges::all_of(
         nbrsIdxToUse, [&joltage, &numbers](const auto idx) { return numbers.at(idx) > joltage; }));
