@@ -134,6 +134,16 @@ generateButtonCombinationsIdx(const std::vector<std::string>& buttons) {
             combinations[nbr - '0'].push_back(idx);
         }
     }
+    //    bool run{true};
+    //    while (run) {
+    //        run = false;
+    //        for (size_t i{0}; i < combinations.size() - 1; ++i) {
+    //            if (combinations.at(i).size() > combinations.at(i + 1).size()) {
+    //                std::swap(combinations[i], combinations[i + 1]);
+    //                run = true;
+    //            }
+    //        }
+    //    }
     return combinations;
 }
 
@@ -229,7 +239,7 @@ uint64_t getNbrOfIdx(const std::map<uint64_t, std::vector<size_t>>& combs) {
 void printNumbers(const std::vector<uint64_t>& numbers) {
     printf("Numbers(%zu): ", numbers.size());
     for (size_t i{}; i < numbers.size(); ++i) {
-        printf("%lu", numbers.at(i));
+        printf("%zu. %lu", i, numbers.at(i));
         if (i < numbers.size() - 1) {
             printf(", ");
         }
@@ -374,12 +384,14 @@ uint64_t getFewestPressesFast(const std::map<uint64_t, std::vector<size_t>>& com
 
     if (idx == combinations.size()) {
         const auto presses = getNumbers(numbers);
-        // printf("Found! idx: %lu presses: %lu\n", idx, presses);
+        printf("Found! idx: %lu presses: %lu\n", idx, presses);
         return presses;
     }
 
+    // if (idx > combinations.size() - 4) {
     // printf("Scanning idx: %lu : ", idx);
     // printNumbers(numbers);
+    //}
 
     const auto& combs = combinations.at(idx);
     std::vector<uint64_t> nbrsIdxToUse;
@@ -411,8 +423,15 @@ uint64_t getFewestPressesFast(const std::map<uint64_t, std::vector<size_t>>& com
                 break;
             }
         }
-    } while (!std::ranges::all_of(
-        nbrsIdxToUse, [&joltage, &numbers](const auto idx) { return numbers.at(idx) > joltage; }));
+        // try {
+        //     (void)numbers.at(nbrsIdxToUse.back());
+        // } catch (const std::out_of_range&) {
+        //     printf("CRASH size: %zu idx: %lu\n", numbers.size(), nbrsIdxToUse.back());
+        // }
+    } while (not nbrsIdxToUse.empty() && numbers.at(nbrsIdxToUse.back()) <= joltage);
+    //} while (!std::ranges::all_of(
+    //    nbrsIdxToUse, [&joltage, &numbers](const auto idx) { return numbers.at(idx) > joltage;
+    //    }));
 
     return ret;
 }
@@ -434,7 +453,7 @@ uint64_t getNbrOfButtonPresses(const std::string& line) {
     std::cout << std::endl;
     const auto combinations = generateButtonCombinationsIdx(buttons);
     for (const auto& [i, combination] : combinations) {
-        printf("Combinations for %ld: ", i);
+        printf("Combinations(%zu) for %ld: ", i, combination.size());
         for (const auto& combo : combination) {
             std::cout << "(" << combo << "), ";
         }
@@ -451,8 +470,8 @@ uint64_t getNbrOfButtonPresses(const std::string& line) {
         // std::cout << std::endl;
     }*/
     // OLD
-    // const auto nbrOfPresses = getFewestButtonsPressed(joltages, buttons, pressed, combinations);
-    // return nbrOfPresses;
+    // const auto nbrOfPresses = getFewestButtonsPressed(joltages, buttons, pressed,
+    // combinations); return nbrOfPresses;
 
     // OLD 2
     // const auto nbrOfPresses = getFewestPresses(combinations, joltages);
