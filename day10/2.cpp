@@ -95,6 +95,14 @@ generateButtonCombinations(const std::vector<std::string>& buttons) {
     return combinations;
 }
 
+uint64_t getMatches(const std::vector<size_t>& first, const std::vector<size_t>& second) {
+    uint64_t ret{};
+    for (const auto nbr : first) {
+        ret += std::ranges::count(second, nbr);
+    }
+    return ret;
+}
+
 std::map<uint64_t, std::pair<std::vector<size_t>, uint64_t>>
 generateButtonCombinationsIdx(const std::vector<std::string>& buttons,
                               const std::vector<uint64_t>& joltages) {
@@ -109,6 +117,26 @@ generateButtonCombinationsIdx(const std::vector<std::string>& buttons,
             combinations[nbr - '0'].second = joltages.at(nbr - '0');
         }
     }
+    /* for some reason did not work
+    std::vector<std::pair<size_t, uint64_t>> matches;
+    for (size_t i{0}; i < combinations.size(); ++i) {
+        uint64_t count{};
+        for (size_t j{0}; j < combinations.size(); ++j) {
+            if (i != j) {
+                count += getMatches(combinations.at(i).first, combinations.at(j).first);
+            }
+        }
+        matches.emplace_back(i, count);
+    }
+    std::map<uint64_t, std::pair<std::vector<size_t>, uint64_t>> combinations_t;
+    std::ranges::sort(matches, [](const auto a, const auto b) { return a.second < b.second; });
+    size_t i{};
+    for (const auto& [idx, count] : matches) {
+        combinations_t[i++] = combinations.at(idx);
+    }
+    combinations = std::move(combinations_t);
+    */
+
     bool run{true};
     while (run) {
         run = false;
@@ -116,6 +144,23 @@ generateButtonCombinationsIdx(const std::vector<std::string>& buttons,
             if (combinations.at(i).first.size() > combinations.at(i + 1).first.size()) {
                 std::swap(combinations[i], combinations[i + 1]);
                 run = true;
+            }
+        }
+    }
+    run = true;
+    while (run) {
+        run = false;
+        for (size_t i{0}; i < combinations.size() - 2; ++i) {
+            if (combinations.at(i + 1).first.size() == combinations.at(i + 2).first.size()) {
+                const auto first =
+                    getMatches(combinations.at(i).first, combinations.at(i + 1).first);
+                const auto second =
+                    getMatches(combinations.at(i).first, combinations.at(i + 2).first);
+                // printf("%zu. first: %lu, second: %lu\n", i, first, second);
+                if (second > first) {
+                    std::swap(combinations[i + 1], combinations[i + 2]);
+                    run = true;
+                }
             }
         }
     }
@@ -213,10 +258,10 @@ uint64_t getFewestPressesFast(
         return presses;
     }
 
-    // if (idx > combinations.size() - 4) {
-    // printf("Scanning idx: %lu : ", idx);
-    // printNumbers(numbers);
-    //}
+    // if (idx > combinations.size() - 6) {
+    //     printf("Scanning idx: %lu : ", idx);
+    //     printNumbers(numbers);
+    // }
 
     const auto& combs = combinations.at(idx);
     std::vector<uint64_t*> nbrsPtrToUse;
@@ -235,6 +280,10 @@ uint64_t getFewestPressesFast(
             if (presses < ret) {
                 ret = presses;
             }
+            // break;
+            //} else if (ret != UINT64_MAX) {
+            //    break;
+            //}
         }
     } while (update(nbrsPtrToUse, numbers, combs.first, joltage));
 
@@ -251,18 +300,18 @@ uint64_t getNbrOfButtonPresses(const std::string& line) {
     }
     std::cout << std::endl;
     // printVec(buttons);
-    printf("Joltage: ");
+    printf("Joltages: ");
     for (auto joltage : joltages) {
         std::cout << joltage << ", ";
     }
     std::cout << std::endl;
     const auto combinations = generateButtonCombinationsIdx(buttons, joltages);
     for (const auto& [i, combination] : combinations) {
-        printf("Combinations(%zu) for %ld: ", i, combination.first.size());
+        printf("Combinations(%zu) size: %ld: ", i, combination.first.size());
         for (const auto& combo : combination.first) {
             std::cout << "(" << combo << "), ";
         }
-        printf(" = %lu\n", joltages.at(i));
+        printf(" = %lu\n", combination.second);
     }
 
     std::vector<uint64_t> numbers(getNbrOfIdx(combinations));
@@ -292,3 +341,4 @@ int main(int argc, char* argv[]) {
 }
 
 // 15000 too high
+// 15835 too high
