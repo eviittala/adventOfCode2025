@@ -40,17 +40,22 @@ bool update(std::vector<uint64_t*>& ptrs, const std::vector<uint64_t>& numbers,
 }
 
 int main(void) {
-    std::vector<uint64_t> numbers{0, 1, 1, 3, 2};
-    std::vector<uint64_t*> ptrs(1);
+    std::vector<uint64_t> numbers{0, 0, 0, 0, 0, 0};
+    std::vector<uint64_t*> ptrs(6);
     ptrs.at(0) = &numbers.at(0);
-    //    ptrs.at(1) = &numbers.at(3);
+    ptrs.at(1) = &numbers.at(1);
+    ptrs.at(2) = &numbers.at(2);
+    ptrs.at(3) = &numbers.at(3);
+    ptrs.at(4) = &numbers.at(4);
+    ptrs.at(5) = &numbers.at(5);
     //    ptrs.at(2) = &numbers.at(4);
-    const uint64_t joltage = 10;
+    const uint64_t joltage = 55;
 
     while (update(ptrs, numbers, joltage)) {
-        printf("%lu %lu %lu %lu %lu = %d\n", numbers.at(0), numbers.at(1), numbers.at(2),
-               numbers.at(3), numbers.at(4),
-               std::accumulate(std::begin(numbers), std::end(numbers), 0));
+        for (const auto nbr : numbers) {
+            printf("%lu ", nbr);
+        }
+        printf("= %d\n", std::accumulate(std::begin(numbers), std::end(numbers), 0));
     }
     return 0;
 }

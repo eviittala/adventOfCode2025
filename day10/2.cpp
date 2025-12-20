@@ -196,10 +196,20 @@ uint64_t getNumbers(const std::vector<uint64_t>& numbers) {
     return ret;
 }
 
+uint64_t getNumbersTemp(const std::vector<uint64_t>& numbers) {
+    uint64_t ret{};
+    for (const auto i : numbers) {
+        if (i != UINT64_MAX) {
+            ret += i;
+        }
+    }
+    return ret;
+}
+
 bool isCombValid(const std::vector<size_t>& combs, const std::vector<uint64_t>& numbers,
                  const uint64_t joltage) {
     uint64_t val{};
-    for (auto idx : combs) {
+    for (const auto idx : combs) {
         val += numbers.at(idx);
     }
     return val == joltage;
@@ -207,7 +217,7 @@ bool isCombValid(const std::vector<size_t>& combs, const std::vector<uint64_t>& 
 
 uint64_t accumulateComb(const std::vector<size_t>& combs, const std::vector<uint64_t>& numbers) {
     uint64_t ret{};
-    for (auto idx : combs) {
+    for (const auto idx : combs) {
         ret += numbers.at(idx);
     }
     return ret;
@@ -271,19 +281,18 @@ uint64_t getFewestPressesFast(
             numbers.at(nbrIdx) = 0;
         }
     }
-    uint64_t ret{UINT64_MAX};
     const auto joltage = combinations.at(idx).second;
+    if (!isCombValid(combs.first, numbers, joltage)) {
+        if (!update(nbrsPtrToUse, numbers, combs.first, joltage)) {
+            return UINT64_MAX;
+        }
+    }
 
+    uint64_t ret{UINT64_MAX};
     do {
-        if (isCombValid(combs.first, numbers, joltage)) {
-            const auto presses = getFewestPressesFast(combinations, numbers, idx + 1);
-            if (presses < ret) {
-                ret = presses;
-            }
-            // break;
-            //} else if (ret != UINT64_MAX) {
-            //    break;
-            //}
+        const auto presses = getFewestPressesFast(combinations, numbers, idx + 1);
+        if (presses < ret) {
+            ret = presses;
         }
     } while (update(nbrsPtrToUse, numbers, combs.first, joltage));
 
