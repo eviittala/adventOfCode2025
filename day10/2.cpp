@@ -180,7 +180,7 @@ uint64_t getNbrOfIdx(const std::map<uint64_t, std::pair<std::vector<size_t>, uin
 void printNumbers(const std::vector<uint64_t>& numbers) {
     printf("Numbers(%zu): ", numbers.size());
     for (size_t i{}; i < numbers.size(); ++i) {
-        printf("%zu: %lu", i, numbers.at(i));
+        printf("(%zu) = %lu", i, numbers.at(i));
         if (i < numbers.size() - 1) {
             printf(", ");
         }
@@ -192,16 +192,6 @@ uint64_t getNumbers(const std::vector<uint64_t>& numbers) {
     uint64_t ret{};
     for (const auto i : numbers) {
         ret += i;
-    }
-    return ret;
-}
-
-uint64_t getNumbersTemp(const std::vector<uint64_t>& numbers) {
-    uint64_t ret{};
-    for (const auto i : numbers) {
-        if (i != UINT64_MAX) {
-            ret += i;
-        }
     }
     return ret;
 }
@@ -223,7 +213,7 @@ uint64_t accumulateComb(const std::vector<size_t>& combs, const std::vector<uint
     return ret;
 }
 
-bool update(std::vector<uint64_t*>& ptrs, const std::vector<uint64_t>& numbers,
+bool update(const std::vector<uint64_t*>& ptrs, const std::vector<uint64_t>& numbers,
             const std::vector<size_t>& combs, const uint64_t joltage) {
     if (ptrs.empty()) {
         return false;
@@ -234,9 +224,9 @@ bool update(std::vector<uint64_t*>& ptrs, const std::vector<uint64_t>& numbers,
         return true;
     }
 
-    if (numbers.back() == joltage) {
-        return false;
-    }
+    // if (numbers.back() == joltage) {
+    //     return false;
+    // }
 
     *ptrs.front() += 1;
     while (joltage < accumulateComb(combs, numbers)) {
@@ -258,45 +248,72 @@ bool update(std::vector<uint64_t*>& ptrs, const std::vector<uint64_t>& numbers,
     return true;
 }
 
+void setZeroToNumbers(const std::vector<uint64_t*>& ptrsToNbr) {
+    for (const auto ptr : ptrsToNbr) {
+        *ptr = 0;
+    }
+}
+
 uint64_t getFewestPressesFast(
     const std::map<uint64_t, std::pair<std::vector<size_t>, uint64_t>>& combinations,
-    std::vector<uint64_t> numbers, const uint64_t idx) {
+    std::vector<uint64_t>& numbers, const std::map<size_t, std::vector<uint64_t*>>& ptrsToNbr,
+    const uint64_t idx) {
 
     if (idx == combinations.size()) {
         const auto presses = getNumbers(numbers);
         printf("Found! idx: %lu presses: %lu\n", idx, presses);
+        // printNumbers(numbers);
         return presses;
     }
 
-    // if (idx > combinations.size() - 6) {
-    //     printf("Scanning idx: %lu : ", idx);
-    //     printNumbers(numbers);
-    // }
-
     const auto& combs = combinations.at(idx);
-    std::vector<uint64_t*> nbrsPtrToUse;
-    for (auto nbrIdx : combs.first) {
-        if (numbers.at(nbrIdx) == UINT64_MAX) {
-            nbrsPtrToUse.push_back(&numbers.at(nbrIdx));
-            numbers.at(nbrIdx) = 0;
-        }
-    }
     const auto joltage = combinations.at(idx).second;
+    if (ptrsToNbr.contains(idx)) {
+        setZeroToNumbers(ptrsToNbr.at(idx));
+    }
     if (!isCombValid(combs.first, numbers, joltage)) {
-        if (!update(nbrsPtrToUse, numbers, combs.first, joltage)) {
+        // printf("Comb not valid idx: %zu constains: %d\n", idx, ptrsToNbr.contains(idx));
+        if (ptrsToNbr.contains(idx)) {
+            if (!update(ptrsToNbr.at(idx), numbers, combs.first, joltage)) {
+                // printf("cannot update values\n");
+                return UINT64_MAX;
+            }
+        } else {
             return UINT64_MAX;
         }
     }
+    // if (idx > combinations.size() - 6) {
+    // printf("Scanning idx: %lu : ", idx);
+    // printNumbers(numbers);
+    // }
 
     uint64_t ret{UINT64_MAX};
     do {
-        const auto presses = getFewestPressesFast(combinations, numbers, idx + 1);
+        const auto presses = getFewestPressesFast(combinations, numbers, ptrsToNbr, idx + 1);
         if (presses < ret) {
             ret = presses;
         }
-    } while (update(nbrsPtrToUse, numbers, combs.first, joltage));
+    } while (ptrsToNbr.contains(idx) && update(ptrsToNbr.at(idx), numbers, combs.first, joltage));
 
     return ret;
+}
+
+std::map<size_t, std::vector<uint64_t*>>
+makePtrsToUse(const std::map<uint64_t, std::pair<std::vector<size_t>, uint64_t>>& combinations,
+              std::vector<uint64_t>& numbers) {
+    std::map<size_t, std::vector<uint64_t*>> retPtrs;
+    for (size_t i{}; i < combinations.size(); ++i) {
+        // printf("IDX: %lu -  ", i);
+        for (const auto nbrIdx : combinations.at(i).first) {
+            if (numbers.at(nbrIdx) == UINT64_MAX) {
+                // printf("%lu, ", nbrIdx);
+                retPtrs[i].push_back(&numbers.at(nbrIdx));
+                numbers.at(nbrIdx) = 0;
+            }
+        }
+        // printf("\n");
+    }
+    return retPtrs;
 }
 
 uint64_t getNbrOfButtonPresses(const std::string& line) {
@@ -325,7 +342,15 @@ uint64_t getNbrOfButtonPresses(const std::string& line) {
 
     std::vector<uint64_t> numbers(getNbrOfIdx(combinations));
     std::ranges::fill(numbers, UINT64_MAX);
-    return getFewestPressesFast(combinations, numbers, 0);
+    const auto ptrsToUse = makePtrsToUse(combinations, numbers);
+    //    for (const auto& [idx, ptrs] : ptrsToUse) {
+    //        printf("%zu. ptrs size: %zu - ", idx, ptrs.size());
+    //        for (const auto nbrPtr : ptrs) {
+    //            printf("%lu, ", *nbrPtr);
+    //        }
+    //        printf("\n");
+    //    }
+    return getFewestPressesFast(combinations, numbers, ptrsToUse, 0);
 }
 
 uint64_t solution(const std::string& input) {
