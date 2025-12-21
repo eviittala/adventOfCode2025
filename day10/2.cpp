@@ -357,9 +357,10 @@ uint64_t solution(const std::string& input) {
     const auto vec = makeVec(input);
     // printVec(vec);
     uint64_t ret{};
-    for (const auto& line : vec) {
+    for (size_t i{}; i < vec.size(); ++i) {
+        const auto& line = vec.at(i);
         const auto nbrOfPresses = getNbrOfButtonPresses(line);
-        printf("%s nbrOfPresses: %lu\n", line.c_str(), nbrOfPresses);
+        printf("(%zu/%zu) - %s nbrOfPresses: %lu\n", i + 1, vec.size(), line.c_str(), nbrOfPresses);
         ret += nbrOfPresses;
     }
     return ret;
@@ -374,5 +375,3 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-// 15000 too high
-// 15835 too high
