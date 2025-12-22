@@ -53,29 +53,44 @@ void printMap(const std::map<std::string, std::vector<std::string>>& map) {
     }
 }
 
+// std::map<std::string, uint64_t> mem;
+
 uint64_t getPaths(const std::map<std::string, std::vector<std::string>>& map,
-                  const std::string& key) {
+                  const std::string& key, uint8_t matches) {
     if (key == "out") {
-        return 1;
+        return 3 == matches ? 1 : 0;
     }
 
     if (!map.contains(key)) {
         return 0;
     }
 
+    if (key == "fft") {
+        matches |= 0x1;
+    }
+
+    if (key == "dac") {
+        matches |= 0x2;
+    }
+
+    //   if (mem.contains(key))
+    //       return mem.at(key);
+
     uint64_t ret{};
 
     for (const auto& path : map.at(key)) {
-        ret += getPaths(map, path);
+        ret += getPaths(map, path, matches);
     }
+    // mem[key] = ret;
     return ret;
 }
 
 uint64_t solution(const std::string& input) {
     const auto map = makeMap(input);
     // printMap(map);
-    const std::string start = "you";
-    uint64_t ret = getPaths(map, start);
+    const std::string start = "svr";
+    uint64_t ret = getPaths(map, start, 0);
+    // uint64_t ret{};
     return ret;
 }
 
