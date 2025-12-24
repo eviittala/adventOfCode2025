@@ -53,44 +53,48 @@ void printMap(const std::map<std::string, std::vector<std::string>>& map) {
     }
 }
 
-// std::map<std::string, uint64_t> mem;
+std::map<std::string, uint64_t> mem;
 
 uint64_t getPaths(const std::map<std::string, std::vector<std::string>>& map,
-                  const std::string& key, uint8_t matches) {
-    if (key == "out") {
-        return 3 == matches ? 1 : 0;
+                  const std::string& start, const std::string& end) {
+    if (start == end) {
+        return 1;
     }
 
-    if (!map.contains(key)) {
+    if (!map.contains(start)) {
         return 0;
     }
 
-    if (key == "fft") {
-        matches |= 0x1;
-    }
-
-    if (key == "dac") {
-        matches |= 0x2;
-    }
-
-    //   if (mem.contains(key))
-    //       return mem.at(key);
+    if (mem.contains(start))
+        return mem.at(start);
 
     uint64_t ret{};
 
-    for (const auto& path : map.at(key)) {
-        ret += getPaths(map, path, matches);
+    for (const auto& path : map.at(start)) {
+        ret += getPaths(map, path, end);
     }
-    // mem[key] = ret;
+    if (!mem.contains(start)) {
+        mem[start] = ret;
+    }
     return ret;
 }
 
 uint64_t solution(const std::string& input) {
     const auto map = makeMap(input);
     // printMap(map);
-    const std::string start = "svr";
-    uint64_t ret = getPaths(map, start, 0);
-    // uint64_t ret{};
+    const auto first = getPaths(map, "svr", "dac");
+    mem.clear();
+    const auto second = getPaths(map, "dac", "fft");
+    mem.clear();
+    const auto third = getPaths(map, "fft", "out");
+    mem.clear();
+    const auto fourth = getPaths(map, "svr", "fft");
+    mem.clear();
+    const auto fifth = getPaths(map, "fft", "dac");
+    mem.clear();
+    const auto sixth = getPaths(map, "dac", "out");
+    mem.clear();
+    uint64_t ret = first * second * third + fourth * fifth * sixth;
     return ret;
 }
 
